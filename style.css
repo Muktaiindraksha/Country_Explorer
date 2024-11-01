@@ -1,0 +1,129 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.dark-theme {
+    background-color: #333;
+    color: #8f8f94;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#searchBar {
+    padding: 10px;
+    font-size: 16px;
+    width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#themeToggle {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.favorites-section {
+    margin-bottom: 20px;
+}
+
+.favorites-section h2 {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.favorites-count {
+    margin-left: 10px;
+    background-color: #73a2e8;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 25px;
+}
+
+.favorites-section ul {
+    list-style: none;
+}
+
+.favorites-section li {
+    margin: 5px 0;
+}
+
+.main-content {
+    display: flex;
+}
+
+.country-list {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Show 4 countries per row */
+    gap: 20px;
+}
+
+.country-card {
+    position: relative;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+.country-card:hover {
+    transform: scale(1.05);
+}
+
+.country-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.country-info {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 0 0 8px 8px;
+}
+
+.country-card:hover .country-info {
+    display: block; /* Show info on hover */
+}
+
+.favorite-icon {
+    cursor: pointer;
+    font-size: 20px;
+    color: gray; /* Default color for unfavorited */
+}
+
+.favorite-icon.favorited {
+    color: red; /* Color for favorited */
+}
