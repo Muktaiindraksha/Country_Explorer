@@ -1,107 +1,97 @@
-const apiUrl = "https://restcountries.com/v3.1/all";
-const searchBar = document.getElementById("searchBar");
-const countryList = document.getElementById("countryList");
-const favoritesList = document.getElementById("favoritesList");
-const favoritesCount = document.getElementById("favoritesCount");
-const themeToggle = document.getElementById("themeToggle");
-
 let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+let countriesData = []; 
 
-// Fetch and display countries
-async function fetchCountries() {
-    const response = await fetch(apiUrl);
-    const countries = await response.json();
-    displayCountries(countries);
+const themeToggleButton = document.getElementById("themeToggle");
+themeToggleButton.addEventListener("click", () => {
+    document.body.classList.toggle("dark-theme");
+    themeToggleButton.textContent = document.body.classList.contains("dark-theme") ? "🌙" : "🌞";
+});
+
+function updateFavoriteCount() {
+    document.getElementById("favoriteCount").textContent = favorites.length;
 }
 
 function displayCountries(countries) {
+    const countryList = document.getElementById("countryList");
     countryList.innerHTML = "";
+    
     countries.forEach(country => {
-        const card = document.createElement("div");
-        card.classList.add("country-card");
-        card.innerHTML = `
-            <img src="${country.flags.png}" alt="${country.name.common}">
-            <h3>${country.name.common}</h3>
-            <i class="favorite-icon ${favorites.includes(country.name.common) ? 'favorited' : ''}" data-name="${country.name.common}">${favorites.includes(country.name.common) ? '★' : '☆'}</i>
+        const countryCard = document.createElement("div");
+        countryCard.classList.add("country-card");
+        
+        countryCard.innerHTML = `
+            <img src="${country.flags.png}" alt="Flag of ${country.name}">
+            <h3>${country.name}</h3>
+            <span class="favorite-icon ${favorites.includes(country.name) ? 'favorited' : ''}"
+                  onclick="toggleFavorite('${country.name}', this)">&#9829;</span>
             <div class="country-info">
-                <p><strong>Region:</strong> ${country.region}</p>
-                <p><strong>Capital:</strong> ${country.capital ? country.capital[0] : 'N/A'}</p>
-                <p><strong>Population:</strong> ${country.population.toLocaleString()}</p>
-                <p><strong>Languages:</strong> ${Object.values(country.languages || {}).join(", ")}</p>
+                <p>Region: ${country.region}</p>
+                <p>Capital: ${country.capital}</p>
+                <p>Population: ${country.population}</p>
+                <p>Language: ${country.languages[0].name}</p>
             </div>
         `;
-        countryList.appendChild(card);
+        
+        countryList.appendChild(countryCard);
     });
-    addFavoriteListeners();
+    
+    updateFavoriteCount();
 }
 
-// Add event listeners to favorite icons
-function addFavoriteListeners() {
-    const favoriteIcons = document.querySelectorAll(".favorite-icon");
-    favoriteIcons.forEach(icon => {
-        icon.addEventListener("click", (e) => {
-            const countryName = e.target.dataset.name;
-            toggleFavorite(countryName, e.target);
-        });
-    });
-}
-
-// Toggle favorite countries
-function toggleFavorite(countryName, icon) {
-    if (favorites.includes(countryName)) {
-        favorites = favorites.filter(name => name !== countryName);
-        icon.classList.remove('favorited');
-        icon.textContent = '☆'; // Change icon to unfavorited
+function toggleFavorite(countryName, iconElement) {
+    const index = favorites.indexOf(countryName);
+    if (index > -1) {
+        favorites.splice(index, 1);
+        iconElement.classList.remove('favorited');
     } else {
-        if (favorites.length < 5) {
-            favorites.push(countryName);
-            icon.classList.add('favorited');
-            icon.textContent = '★'; // Change icon to favorited
-        } else {
-            alert("You can only have 5 favorites!");
-            return;
-        }
+        favorites.push(countryName);
+        iconElement.classList.add('favorited');
     }
+    
     localStorage.setItem("favorites", JSON.stringify(favorites));
-    updateFavoritesCount();
-    displayFavorites();
+    updateFavoriteCount();
 }
 
-// Display favorites
-function displayFavorites() {
-    favoritesList.innerHTML = "";
-    favorites.forEach(name => {
-        const li = document.createElement("li");
-        li.textContent = name;
-        favoritesList.appendChild(li);
-    });
+
+async function fetchCountries() {
+    const response = await fetch("https://restcountries.com/v2/all");
+    countriesData = await response.json();
+    displayCountries(countriesData);
 }
 
-// Update favorites count
-function updateFavoritesCount() {
-    favoritesCount.textContent = `(${favorites.length})`;
-}
+function filterCountries() {
+    const region = document.getElementById("regionFilter").value;
+    const language = document.getElementById("languageFilter").value;
 
-// Search functionality
-searchBar.addEventListener("input", (e) => {
-    const searchValue = e.target.value.toLowerCase();
-    fetchCountries().then(() => {
-        const filteredCountries = Array.from(countryList.children).filter(card => 
-            card.querySelector("h3").textContent.toLowerCase().includes(searchValue)
+    let filteredCountries = countriesData;
+    
+    if (region) {
+        filteredCountries = filteredCountries.filter(country => country.region === region);
+    }
+    
+    if (language) {
+        filteredCountries = filteredCountries.filter(country =>
+            country.languages.some(lang => lang.name === language)
         );
-        countryList.innerHTML = "";
-        filteredCountries.forEach(card => countryList.appendChild(card));
-    });
+    }
+
+    displayCountries(filteredCountries);
+}
+
+document.getElementById("searchBar").addEventListener("input", function() {
+    const searchTerm = this.value.toLowerCase();
+    const filteredCountries = countriesData.filter(country => 
+        country.name.toLowerCase().includes(searchTerm)
+    );
+    displayCountries(filteredCountries);
 });
 
-// Theme toggle
-themeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark-theme");
-    themeToggle.classList.toggle("fa-moon");
-    themeToggle.classList.toggle("fa-sun");
-});
+async function initialize() {
+    await fetchCountries();
 
-// Initial fetch
-fetchCountries();
-displayFavorites();
-updateFavoritesCount();
+    document.getElementById("regionFilter").addEventListener("change", filterCountries);
+    document.getElementById("languageFilter").addEventListener("change", filterCountries);
+}
+initialize();
+
+
